@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telugu ↔ Hindi Bubble Pop Quiz</title>
+  <style>
+    :root {
+      --accent: #f97316;
+      --accent-dark: #c2410c;
+      --bg-start: #fff7ed;
+      --bg-end: #fffbf5;
+      --correct: #0f9d58;
+      --wrong: #c62828;
+      --timer: #2563eb;
+    }
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, var(--bg-start), var(--bg-end));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .game {
+      width: min(980px, 100%);
+      background: #fff;
+      border-radius: 24px;
+      padding: 24px 28px;
+      box-shadow: 0 25px 60px rgba(249, 115, 22, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    .meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .progress {
+      font-weight: 600;
+      color: #475569;
+    }
+    .timer-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .timer-bar {
+      width: 120px;
+      height: 10px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--timer);
+      transform-origin: left;
+      transition: width 0.2s linear;
+    }
+    .timer-value {
+      min-width: 36px;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+    }
+    .question {
+      font-size: 18px;
+      font-weight: 600;
+      background: #fff4eb;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #9a3412;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .target {
+      font-size: 38px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 6px 20px;
+      margin-left: 6px;
+      box-shadow: inset 0 0 0 2px rgba(249, 115, 22, 0.08);
+    }
+    .bubble-zone {
+      position: relative;
+      min-height: 360px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #fffdf7, #fff5e9);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 18px;
+    }
+    .bubble {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      animation: float 6s ease-in-out infinite;
+      position: relative;
+      user-select: none;
+      border: none;
+    }
+    .bubble::after {
+      content: "";
+      position: absolute;
+      top: 14px;
+      left: 28px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      filter: blur(1px);
+    }
+    .bubble:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 20px 36px rgba(0, 0, 0, 0.12);
+    }
+    .bubble.correct {
+      background: var(--correct);
+      color: #fff;
+    }
+    .bubble.wrong {
+      background: var(--wrong);
+      color: #fff;
+    }
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-16px);
+      }
+      100% {
+        transform: translateY(0px);
+      }
+    }
+    .message {
+      min-height: 36px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d4ed8;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(249, 115, 22, 0.18);
+      transition: transform 0.12s;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--accent-dark);
+      border: 2px solid rgba(249, 115, 22, 0.18);
+      box-shadow: none;
+    }
+    select {
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #e6e6e6;
+      font-weight: 600;
+    }
+    .hidden {
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .bubble {
+        width: 92px;
+        height: 92px;
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game">
+    <div class="header">
+      <div class="title">Telugu ↔ Hindi Bubble Pop Quiz</div>
+      <div class="meta">
+        <div class="progress" id="progress">Round 0 / 10 · Score 0</div>
+        <div class="timer-wrap">
+          <div style="font-weight: 600; color: #475569; font-size: 13px">
+            Timer
+          </div>
+          <div class="timer-bar">
+            <div id="timerFill" class="timer-fill"></div>
+          </div>
+          <div id="timerValue" class="timer-value">--</div>
+        </div>
+      </div>
+    </div>
+    <div class="question" id="question">
+      Tap “Start Game” to begin. You’ll see six floating alphabets—pop the matching one!
+    </div>
+    <div class="bubble-zone" id="bubbleZone"></div>
+    <div class="message" id="message"></div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button id="startBtn">Start Game</button>
+      <button id="resetBtn" class="secondary hidden">Reset</button>
+
+      <!-- Round time -->
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #475569">
+        Round time:
+        <select id="timeSelect">
+          <option value="5">5s</option>
+          <option value="8" selected>8s</option>
+          <option value="12">12s</option>
+          <option value="custom">Custom</option>
+        </select>
+        <input
+          id="customTime"
+          type="number"
+          min="1"
+          placeholder="Sec"
+          style="width: 60px; display: none; padding: 6px; border-radius: 8px; border: 1px solid #ccc; font-weight: 600"
+        />
+      </label>
+
+      <!-- Choices (no visible label text) -->
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #475569">
+        <select id="choiceSelect">
+          <option value="4">4 choices</option>
+          <option value="6" selected>6 choices</option>
+          <option value="8">8 choices</option>
+          <option value="10">10 choices</option>
+          <option value="12">12 choices</option>
+          <option value="custom">Custom</option>
+        </select>
+        <input
+          id="customChoices"
+          type="number"
+          min="2"
+          max="20"
+          placeholder="Choices"
+          style="width: 80px; display: none; padding: 6px; border-radius: 8px; border: 1px solid #ccc; font-weight: 600"
+        />
+      </label>
+
+      <!-- Rounds (no visible label text) -->
+      <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #475569">
+        <select id="roundSelect">
+          <option value="5">5 rounds</option>
+          <option value="10" selected>10 rounds</option>
+          <option value="15">15 rounds</option>
+          <option value="20">20 rounds</option>
+          <option value="25">25 rounds</option>
+          <option value="custom">Custom</option>
+        </select>
+        <input
+          id="customRounds"
+          type="number"
+          min="1"
+          max="100"
+          placeholder="Rounds"
+          style="width: 80px; display: none; padding: 6px; border-radius: 8px; border: 1px solid #ccc; font-weight: 600"
+        />
+      </label>
+    </div>
+  </div>
+
+  <script>
+    const MASTER_PAIRS = [
+      { id: "a", left: "అ", right: "अ" },
+      { id: "aa", left: "ఆ", right: "आ" },
+      { id: "i", left: "ఇ", right: "इ" },
+      { id: "ii", left: "ఈ", right: "ई" },
+      { id: "u", left: "ఉ", right: "उ" },
+      { id: "uu", left: "ఊ", right: "ऊ" },
+      { id: "ru", left: "ఋ", right: "ऋ" },
+      { id: "e", left: "ఏ", right: "ए" },
+      { id: "ai", left: "ఐ", right: "ऐ" },
+      { id: "o", left: "ఓ", right: "ओ" },
+      { id: "au", left: "ఔ", right: "औ" },
+      { id: "am", left: "అం", right: "अं" },
+      { id: "vis", left: "అః", right: "अः" },
+      { id: "ka", left: "క", right: "क" },
+      { id: "kha", left: "ఖ", right: "ख" },
+      { id: "ga", left: "గ", right: "ग" },
+      { id: "gha", left: "ఘ", right: "घ" },
+      { id: "cha", left: "చ", right: "च" },
+      { id: "chha", left: "ఛ", right: "छ" },
+      { id: "ja", left: "జ", right: "ज" },
+      { id: "jha", left: "ఝ", right: "झ" },
+      { id: "tta", left: "ట", right: "ट" },
+      { id: "ttha", left: "ఠ", right: "ठ" },
+      { id: "dda", left: "డ", right: "ड" },
+      { id: "ddha", left: "ఢ", right: "ढ" },
+      { id: "na_ret", left: "ణ", right: "ण" },
+      { id: "ta", left: "త", right: "त" },
+      { id: "tha", left: "థ", right: "थ" },
+      { id: "da", left: "ద", right: "द" },
+      { id: "dha", left: "ధ", right: "ध" },
+      { id: "na", left: "న", right: "न" },
+      { id: "pa", left: "ప", right: "प" },
+      { id: "pha", left: "ఫ", right: "फ" },
+      { id: "ba", left: "బ", right: "ब" },
+      { id: "bha", left: "భ", right: "भ" },
+      { id: "ma", left: "మ", right: "म" },
+      { id: "ya", left: "య", right: "य" },
+      { id: "ra", left: "ర", right: "र" },
+      { id: "la", left: "ల", right: "ल" },
+      { id: "va", left: "వ", right: "व" },
+      { id: "sha", left: "శ", right: "श" },
+      { id: "ssa", left: "ష", right: "ष" },
+      { id: "sa", left: "స", right: "स" },
+      { id: "ha", left: "హ", right: "ह" },
+      { id: "ksha", left: "క్ష", right: "क्ष" },
+      { id: "tra", left: "త్ర", right: "त्र" },
+      { id: "jna", left: "జ్ఞ", right: "ज्ञ" },
+      { id: "shra", left: "శ్ర", right: "श्र" }
+    ];
+
+    let MAX_ROUNDS = 10;
+    let BUBBLE_COUNT = 6;
+
+    const progressEl = document.getElementById("progress");
+    const questionEl = document.getElementById("question");
+    const bubbleZone = document.getElementById("bubbleZone");
+    const messageEl = document.getElementById("message");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const timerFill = document.getElementById("timerFill");
+    const timerValue = document.getElementById("timerValue");
+    const timeSelect = document.getElementById("timeSelect");
+    const customTime = document.getElementById("customTime");
+    const choiceSelect = document.getElementById("choiceSelect");
+    const roundSelect = document.getElementById("roundSelect");
+    const customChoices = document.getElementById("customChoices");
+    const customRounds = document.getElementById("customRounds");
+
+    let round = 0,
+      score = 0,
+      currentPair = null,
+      awaitingAnswer = false;
+    let timerInterval = null,
+      remaining = 0,
+      roundTime = 8;
+
+    timeSelect.addEventListener("change", () => {
+      if (timeSelect.value === "custom") {
+        customTime.style.display = "block";
+      } else {
+        customTime.style.display = "none";
+      }
+    });
+
+    choiceSelect.addEventListener("change", () => {
+      if (choiceSelect.value === "custom") {
+        customChoices.style.display = "block";
+      } else {
+        customChoices.style.display = "none";
+        BUBBLE_COUNT = parseInt(choiceSelect.value, 10);
+        adjustBubbleStyles();
+      }
+    });
+
+    roundSelect.addEventListener("change", () => {
+      if (roundSelect.value === "custom") {
+        customRounds.style.display = "block";
+      } else {
+        customRounds.style.display = "none";
+        MAX_ROUNDS = parseInt(roundSelect.value, 10);
+        progressEl.textContent = `Round 0 / ${MAX_ROUNDS} · Score 0`;
+      }
+    });
+
+    function adjustBubbleStyles() {
+      const bubbleZone = document.getElementById("bubbleZone");
+      const bubbles = bubbleZone.querySelectorAll(".bubble");
+      const bubbleCount = BUBBLE_COUNT;
+
+      let bubbleSize;
+      if (bubbleCount <= 6) {
+        bubbleSize = 120;
+      } else if (bubbleCount <= 8) {
+        bubbleSize = 100;
+      } else if (bubbleCount <= 10) {
+        bubbleSize = 80;
+      } else {
+        bubbleSize = 60;
+      }
+
+      bubbles.forEach(bubble => {
+        bubble.style.width = `${bubbleSize}px`;
+        bubble.style.height = `${bubbleSize}px`;
+        bubble.style.fontSize = `${bubbleSize / 3}px`;
+      });
+
+      if (bubbleCount <= 6) {
+        bubbleZone.style.gap = "14px";
+        bubbleZone.style.padding = "18px";
+      } else if (bubbleCount <= 8) {
+        bubbleZone.style.gap = "10px";
+        bubbleZone.style.padding = "15px";
+      } else {
+        bubbleZone.style.gap = "8px";
+        bubbleZone.style.padding = "10px";
+      }
+    }
+
+    function rand(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function determineRoundTime() {
+      let chosen;
+      if (timeSelect.value === "custom") {
+        chosen = parseInt(customTime.value, 10);
+        if (!chosen || chosen < 1) {
+          chosen = 8;
+          messageEl.textContent = "Invalid custom time — defaulting to 8s.";
+        }
+      } else {
+        chosen = parseInt(timeSelect.value, 10) || 8;
+      }
+      roundTime = chosen;
+    }
+
+    function determineBubbleCount() {
+      if (choiceSelect.value === "custom") {
+        let chosen = parseInt(customChoices.value, 10);
+        if (!chosen || chosen < 2) {
+          chosen = 6;
+          messageEl.textContent = "Invalid custom choices — defaulting to 6 bubbles.";
+        }
+        chosen = Math.min(chosen, MASTER_PAIRS.length);
+        BUBBLE_COUNT = chosen;
+      } else {
+        BUBBLE_COUNT = parseInt(choiceSelect.value, 10) || 6;
+      }
+    }
+
+    function determineMaxRounds() {
+      if (roundSelect.value === "custom") {
+        let chosen = parseInt(customRounds.value, 10);
+        if (!chosen || chosen < 1) {
+          chosen = 10;
+          messageEl.textContent = "Invalid custom rounds — defaulting to 10 rounds.";
+        }
+        MAX_ROUNDS = chosen;
+      } else {
+        MAX_ROUNDS = parseInt(roundSelect.value, 10) || 10;
+      }
+      progressEl.textContent = `Round 0 / ${MAX_ROUNDS} · Score 0`;
+    }
+
+    function startGame() {
+      round = 0;
+      score = 0;
+      startBtn.classList.add("hidden");
+      resetBtn.classList.remove("hidden");
+      messageEl.textContent = "";
+
+      determineRoundTime();
+      determineBubbleCount();
+      determineMaxRounds();
+
+      nextRound();
+    }
+
+    function resetGame() {
+      stopTimer();
+      round = 0;
+      score = 0;
+      currentPair = null;
+      awaitingAnswer = false;
+      bubbleZone.innerHTML = "";
+      progressEl.textContent = `Round 0 / ${MAX_ROUNDS} · Score 0`;
+      questionEl.textContent =
+        "Tap “Start Game” to begin. You’ll see six floating alphabets—pop the matching one!";
+      messageEl.textContent = "";
+      timerFill.style.width = "100%";
+      timerValue.textContent = "--";
+      startBtn.classList.remove("hidden");
+      resetBtn.classList.add("hidden");
+      shuffle(MASTER_PAIRS);
+    }
+
+    function endGame() {
+      stopTimer();
+      questionEl.innerHTML = `All done! You popped ${score} out of ${MAX_ROUNDS} correctly.`;
+      messageEl.textContent =
+        score >= Math.ceil(MAX_ROUNDS * 0.7)
+          ? "Fantastic flow! You’re officially a script-surfing pro."
+          : "Great practice run! Replay to push that score higher.";
+      bubbleZone.innerHTML = "";
+      awaitingAnswer = false;
+    }
+
+    function startTimer() {
+      stopTimer();
+      remaining = roundTime;
+      updateTimerUI();
+      timerInterval = setInterval(() => {
+        remaining -= 0.1;
+        if (remaining <= 0) {
+          remaining = 0;
+          updateTimerUI();
+          stopTimer();
+          handleTimeout();
+        } else {
+          updateTimerUI();
+        }
+      }, 100);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function updateTimerUI() {
+      const pct = Math.max(0, Math.min(1, remaining / roundTime));
+      timerFill.style.width = `${pct * 100}%`;
+      timerValue.textContent = `${Math.ceil(remaining)}s`;
+    }
+
+    function handleTimeout() {
+      if (!awaitingAnswer) return;
+      awaitingAnswer = false;
+      const bubbles = [...bubbleZone.querySelectorAll(".bubble")];
+      const correctId = currentPair.id;
+      bubbles.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.dataset.id === correctId) btn.classList.add("correct");
+      });
+      messageEl.textContent = "Time's up — moving to the next one!";
+      progressEl.textContent = `Round ${round} / ${MAX_ROUNDS} · Score ${score}`;
+      setTimeout(nextRound, 900);
+    }
+
+    function nextRound() {
+      if (round >= MAX_ROUNDS) {
+        endGame();
+        return;
+      }
+      round++;
+      awaitingAnswer = true;
+
+      currentPair = MASTER_PAIRS[round % MASTER_PAIRS.length];
+
+      const askHindi = Math.random() < 0.5;
+      const promptChar = askHindi ? currentPair.left : currentPair.right;
+      const targetLangLabel = askHindi ? "Hindi" : "Telugu";
+
+      questionEl.innerHTML = `Round ${round}: Tap the ${targetLangLabel} match for <span class="target">${promptChar}</span>`;
+      progressEl.textContent = `Round ${round} / ${MAX_ROUNDS} · Score ${score}`;
+
+      const options = new Map();
+      options.set(currentPair.id, askHindi ? currentPair.right : currentPair.left);
+      let pool = [...MASTER_PAIRS];
+      pool.splice(pool.indexOf(currentPair), 1);
+
+      while (options.size < BUBBLE_COUNT && pool.length > 0) {
+        const candidate = rand(pool);
+        if (options.has(candidate.id)) {
+          pool.splice(pool.indexOf(candidate), 1);
+          continue;
+        }
+        options.set(candidate.id, askHindi ? candidate.right : candidate.left);
+        pool.splice(pool.indexOf(candidate), 1);
+      }
+
+      const optionArr = shuffle([...options.entries()]);
+      bubbleZone.innerHTML = "";
+      optionArr.forEach(([id, char], idx) => {
+        const bubble = document.createElement("button");
+        bubble.className = "bubble";
+        bubble.style.animationDelay = `${(idx % 3) * 0.25}s`;
+        bubble.dataset.id = id;
+        bubble.textContent = char;
+        bubble.addEventListener("click", () => handleGuess(id, bubble));
+        bubbleZone.appendChild(bubble);
+      });
+
+      messageEl.textContent = "Pick the matching bubble!";
+      adjustBubbleStyles();
+      startTimer();
+    }
+
+    function handleGuess(id, bubble) {
+      if (!awaitingAnswer) return;
+      awaitingAnswer = false;
+      stopTimer();
+
+      const bubbles = [...bubbleZone.querySelectorAll(".bubble")];
+      const correctId = currentPair.id;
+      bubbles.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.dataset.id === correctId) btn.classList.add("correct");
+      });
+
+      if (id === correctId) {
+        score++;
+        messageEl.textContent = "Nice pop! That’s a perfect match.";
+        bubble.classList.add("correct");
+      } else {
+        messageEl.textContent =
+          "Oops, not that one. Keep your eyes on the script!";
+        bubble.classList.add("wrong");
+      }
+
+      progressEl.textContent = `Round ${round} / ${MAX_ROUNDS} · Score ${score}`;
+      setTimeout(nextRound, 900);
+    }
+
+    startBtn.addEventListener("click", startGame);
+    resetBtn.addEventListener("click", resetGame);
+
+    adjustBubbleStyles();
+  </script>
+</body>
+</html>
